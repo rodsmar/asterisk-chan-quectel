@@ -524,7 +524,10 @@ EXPORT_DEF int at_enqueue_dial(struct cpvt *cpvt, const char *number, int clir)
 		ATQ_CMD_INIT_DYNI(cmds[cmdsno], CMD_AT_CLIR);
 		cmdsno++;
 	}
-        if (pvt->is_simcom) {
+        if (pvt->is_ec200a) {
+        /* EC200A: audio via external hardware (analog pins + ALSA adapter), no USB PCM voice command */
+        err = at_fill_generic_cmd(&cmds[cmdsno], "ATD%s;\r", number); }
+        else if (pvt->is_simcom) {
 	err = at_fill_generic_cmd(&cmds[cmdsno], "AT+CPCMREG=0;D%s;\r", number); }
         else if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") == 0) {
         err = at_fill_generic_cmd(&cmds[cmdsno], "AT+QPCMV=0;+QPCMV=1,2;D%s;\r", number); }
@@ -575,11 +578,14 @@ EXPORT_DEF int at_enqueue_answer(struct cpvt *cpvt)
 	if(cpvt->state == CALL_STATE_INCOMING)
 	{
 /* FIXME: channel number? */
-             if (pvt->is_simcom) {
+             if (pvt->is_ec200a) {
+                /* EC200A: no USB PCM voice command, answer directly */
+                cmd1 = "ATA\r"; }
+             else if (pvt->is_simcom) {
 		cmd1 = "AT+CPCMREG=0;A\r"; }
-             else if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") == 0) { 
+             else if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") == 0) {
                 cmd1 = "AT+QPCMV=0;+QPCMV=1,2;A\r"; }
-             else { 
+             else {
                 cmd1 = "AT+QPCMV=0;+QPCMV=1,0;A\r"; }
 
 	}

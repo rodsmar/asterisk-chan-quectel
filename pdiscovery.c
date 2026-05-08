@@ -69,6 +69,7 @@ static const struct pdiscovery_device device_ids[] = {
 	{ 0x12d1, 0x1436, { 4, 3, /* 0 */ } },		/* E1750 */
 	{ 0x12d1, 0x1506, { 3, 2, /* 0 */ } },		/* E171 firmware 21.x : thanks Sergey Ivanov */
         { 0x2c7c, 0x0125, { 2, 1, /* 0 */ } },          /* Quectel EC25 */
+        { 0x2c7c, 0x6005, { 2, 1, /* 0 */ } },          /* Quectel EC200A */
         { 0x1e0e, 0x9001, { 2, 4, /* 0 */ } },          /* Simcom Sim7600 */
 };
 

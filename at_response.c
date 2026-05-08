@@ -486,8 +486,16 @@ static int at_response_error (struct pvt* pvt, at_res_t res)
 				break;
 
 			case CMD_AT_CVOICE:
-				ast_debug (1, "[%s] No Quectel voice support\n", PVT_ID(pvt));
-				pvt->has_voice = 0;
+				if (pvt->is_ec200a || strcmp(CONF_UNIQ(pvt, quec_uac), "1") == 0) {
+					/* EC200A does not support AT+QPCMV; audio goes via ALSA (quec_uac).
+					 * Also covers any device explicitly configured with quec_uac=1
+					 * where QPCMV is not used — ALSA handles audio independently. */
+					ast_debug(1, "[%s] No QPCMV support, voice via ALSA (quec_uac mode)\n", PVT_ID(pvt));
+					pvt->has_voice = 1;
+				} else {
+					ast_debug (1, "[%s] No Quectel voice support\n", PVT_ID(pvt));
+					pvt->has_voice = 0;
+				}
                                 break;
 			case CMD_AT_CVOICE2:
 				ast_debug (1, "[%s] No Simcom voice support\n", PVT_ID(pvt));
@@ -1944,6 +1952,12 @@ static int at_response_cgmi (struct pvt* pvt, const char* str)
 static int at_response_cgmm (struct pvt* pvt, const char* str)
 {
 	ast_copy_string (pvt->model, str, sizeof (pvt->model));
+
+	/* EC200A series uses analog/PCM hardware audio — no USB voice (QPCMV unsupported) */
+	if (strncasecmp(str, "EC200A", 6) == 0) {
+		pvt->is_ec200a = 1;
+		ast_debug(1, "[%s] Detected Quectel EC200A family, will use direct audio mode\n", PVT_ID(pvt));
+	}
 
 	return 0;
 }
