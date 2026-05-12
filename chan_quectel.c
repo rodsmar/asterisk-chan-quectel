@@ -385,7 +385,7 @@ EXPORT_DEF int opentty (const char* dev, char ** lockfile, int typ)
 		return -1;
 	}
 
-        if (typ = 1) term_attr.c_cflag = B115200 | CS8 | CREAD | CRTSCTS | CLOCAL;
+        if (typ == 1) term_attr.c_cflag = B115200 | CS8 | CREAD | CRTSCTS | CLOCAL;
 	else term_attr.c_cflag = B115200 | CS8 | CREAD | CRTSCTS;
 	term_attr.c_iflag = 0;
 	term_attr.c_oflag = 0;
@@ -837,7 +837,7 @@ static void pvt_start(struct pvt * pvt)
 		return;
 	}
         if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") == 0) {
-             if (pvt->audio_fd < 0) if (soundcard_init(pvt) < 0) disconnect_quectel (pvt);
+             if (pvt->audio_fd < 0) if (soundcard_init(pvt) < 0) { disconnect_quectel(pvt); return; }
                                                         }
         else {
 	// TODO: delay until device activate voice call or at pvt_on_create_1st_channel()
