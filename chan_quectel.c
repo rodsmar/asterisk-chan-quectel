@@ -194,20 +194,12 @@ static snd_pcm_t *alsa_card_init(char *dev, snd_pcm_stream_t stream,struct pvt *
 
 static int soundcard_init(struct pvt * pvt)
 {
-	int retry;
 
-	for (retry = 0; retry < 5 && !pvt->icard; retry++) {
-		if (retry > 0) {
-			ast_log(LOG_WARNING, "Retrying ALSA capture device %s (attempt %d/5)\n", CONF_UNIQ(pvt, alsadev), retry + 1);
-			usleep(500000);
-		}
-		pvt->icard = alsa_card_init(CONF_UNIQ(pvt, alsadev), SND_PCM_STREAM_CAPTURE, pvt);
-	}
+       pvt->icard = alsa_card_init(CONF_UNIQ(pvt, alsadev), SND_PCM_STREAM_CAPTURE,pvt);
 	if (!pvt->icard) {
-		ast_log(LOG_ERROR, "Problem opening ALSA capture device %s \n",CONF_UNIQ(pvt, alsadev));
-		return -1;
-	}
-
+			ast_log(LOG_ERROR, "Problem opening ALSA capture device %s \n",CONF_UNIQ(pvt, alsadev));
+			return -1;
+        }
 	pvt->ocard = alsa_card_init(CONF_UNIQ(pvt, alsadev), SND_PCM_STREAM_PLAYBACK,pvt);
 
 	if (!pvt->ocard) {
