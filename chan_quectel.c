@@ -194,15 +194,7 @@ static snd_pcm_t *alsa_card_init(char *dev, snd_pcm_stream_t stream,struct pvt *
 
 static int soundcard_init(struct pvt * pvt)
 {
-	int retry;
-
-	for (retry = 0; retry < 5 && !pvt->icard; retry++) {
-		if (retry > 0) {
-			ast_log(LOG_WARNING, "Retrying ALSA capture device %s (attempt %d/5)\n", CONF_UNIQ(pvt, alsadev), retry + 1);
-			usleep(500000);
-		}
-		pvt->icard = alsa_card_init(CONF_UNIQ(pvt, alsadev), SND_PCM_STREAM_CAPTURE, pvt);
-	}
+	pvt->icard = alsa_card_init(CONF_UNIQ(pvt, alsadev), SND_PCM_STREAM_CAPTURE, pvt);
 	if (!pvt->icard) {
 		ast_log(LOG_ERROR, "Problem opening ALSA capture device %s \n",CONF_UNIQ(pvt, alsadev));
 		return -1;
@@ -704,6 +696,12 @@ static void* do_monitor_phone (void* data)
 			{
 				goto e_cleanup;
 			}
+			if (pvt->initialized && !pvt->icard && strcmp(CONF_UNIQ(pvt, quec_uac), "1") == 0) {
+				if (soundcard_init(pvt) < 0) {
+					ast_log(LOG_ERROR, "[%s] Failed to initialize ALSA after AT init\n", dev);
+					goto e_cleanup;
+				}
+			}
 			ast_mutex_unlock (&pvt->lock);
 		}
 	}
@@ -844,10 +842,7 @@ static void pvt_start(struct pvt * pvt)
 	if (pvt->data_fd < 0) {
 		return;
 	}
-        if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") == 0) {
-             if (pvt->audio_fd < 0) if (soundcard_init(pvt) < 0) { disconnect_quectel(pvt); return; }
-                                                        }
-        else {
+        if (strcmp(CONF_UNIQ(pvt, quec_uac),"1") != 0) {
 	// TODO: delay until device activate voice call or at pvt_on_create_1st_channel()
        
 	pvt->audio_fd = opentty(PVT_STATE(pvt, audio_tty), &pvt->alock, pvt->is_simcom);
